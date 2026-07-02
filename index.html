@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WarpLink Studio Multi-Matchmaker</title>
+    <title>WarpLink Matchmaker Client</title>
     <style>
         * {
             margin: 0;
@@ -28,7 +28,7 @@
             align-items: center;
             background: #2d2d2d;
         }
-        /* Your exact custom popup dimensions & dark background */
+        /* Your exact custom viewport dimensions & dark theme background palette */
         .container {
             width: 270px;
             height: 465px;
@@ -44,7 +44,6 @@
             text-align: center;
             margin-top: 10px;
         }
-        /* Forces your top line text to be bright white instead of black */
         .header-section h2 {
             font-size: 28px;
             color: #ffffff !important;
@@ -101,16 +100,16 @@
         .action-btn:active {
             transform: scale(0.98);
         }
-        #btn-host {
+        #wl-host-btn {
             background: #4c97ff;
         }
-        #btn-host:hover {
+        #wl-host-btn:hover {
             background: #357ae8;
         }
-        #btn-join {
+        #wl-join-btn {
             background: #2ecc71;
         }
-        #btn-join:hover {
+        #wl-join-btn:hover {
             background: #27ae60;
         }
         #wl-status-log {
@@ -127,13 +126,11 @@
 <div class="popup-border">
     <div class="container">
         
-        <!-- App Title Header Block -->
         <div class="header-section">
             <h2>WarpLink</h2>
             <p>Connect and synchronize with your studio room across the web.</p>
         </div>
 
-        <!-- Central Input Box and Buttons Matrix -->
         <div class="form-section">
             <span class="input-label">Target Room Code String:</span>
             <input id="wl-room-input" class="room-input" type="text" placeholder="Enter Room Name...">
@@ -144,12 +141,83 @@
             </div>
         </div>
         
-        <!-- Continuous Cloud Status Logger -->
         <div id="wl-status-log">Status: Disconnected</div>
 
     </div>
 </div>
 
-<script src="main.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let webSocketLine = null;
+        const statusLog = document.getElementById('wl-status-log');
+        const roomInputField = document.getElementById('wl-room-input');
+
+        function connectToNodeServer(roomId, roleName) {
+            // 👑 HOOK THIS LINE DIRECTLY TO YOUR RUNNING CLOUD SERVICE LINK:
+            // Swap this text string out with your real address handle (use wss:// instead of https://)
+            const BACKEND_URL = "wss://://onrender.com";
+
+            if (webSocketLine) {
+                webSocketLine.close();
+            }
+
+            if (statusLog) {
+                statusLog.innerText = "Status: Handshaking with Node server...";
+                statusLog.style.color = "#f1c40f";
+            }
+
+            webSocketLine = new WebSocket(BACKEND_URL);
+
+            webSocketLine.onopen = () => {
+                if (statusLog) {
+                    statusLog.innerText = `Status: Live! (${roleName})`;
+                    statusLog.style.color = "#2ecc71";
+                }
+                // Send registration packet up the pipe to the server
+                webSocketLine.send(JSON.stringify({ type: 'join', roomId: roomId }));
+                alert(`🎉 Connected to Node Server!\n\nRoom Channel: ${roomId}\nRole: ${roleName}`);
+            };
+
+            webSocketLine.onmessage = (event) => {
+                const incoming = JSON.parse(event.data);
+                console.log("[WarpLink Client] Data packet arrived:", incoming);
+            };
+
+            webSocketLine.onclose = () => {
+                if (statusLog) {
+                    statusLog.innerText = "Status: Disconnected";
+                    statusLog.style.color = "#e74c3c";
+                }
+            };
+
+            webSocketLine.onerror = () => {
+                if (statusLog) {
+                    statusLog.innerText = "Status: Server Link Error";
+                    statusLog.style.color = "#e74c3c";
+                }
+                alert("⚠️ Connection failed. Check that your Node application is completely active!");
+            };
+        }
+
+        const hostBtn = document.getElementById('wl-host-btn');
+        const joinBtn = document.getElementById('wl-join-btn');
+
+        if (hostBtn) {
+            hostBtn.onclick = () => {
+                const code = roomInputField ? roomInputField.value.trim() : '';
+                if (!code) return alert("Please specify a room name code parameter first!");
+                connectToNodeServer(code, "Host Master");
+            };
+        }
+
+        if (joinBtn) {
+            joinBtn.onclick = () => {
+                const code = roomInputField ? roomInputField.value.trim() : '';
+                if (!code) return alert("Please specify a room name code parameter first!");
+                connectToNodeServer(code, "Client Joiner");
+            };
+        }
+    });
+</script>
 </body>
 </html>
