@@ -1,7 +1,6 @@
 const { WebSocketServer } = require('ws');
 const http = require('http');
 
-// Binds an HTTP listener to satisfy cloud platform uptime routing requirements
 const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': 'text/plain' });
     res.end('WarpLink WebSocket Server Active\n');
@@ -18,7 +17,6 @@ wss.on('connection', (ws) => {
         try {
             const packet = JSON.parse(message);
 
-            // Handle client matching room entry handshakes
             if (packet.type === 'join' && packet.roomId) {
                 assignedRoomKey = packet.roomId;
                 if (!activeRooms[assignedRoomKey]) {
@@ -28,7 +26,6 @@ wss.on('connection', (ws) => {
                 console.log(`User registered into room: ${assignedRoomKey}`);
             }
 
-            // Instantly relay incoming vectors/data to everyone else in the exact same room channel
             if (packet.type === 'broadcast' && assignedRoomKey && activeRooms[assignedRoomKey]) {
                 activeRooms[assignedRoomKey].forEach((client) => {
                     if (client !== ws && client.readyState === ws.OPEN) {
