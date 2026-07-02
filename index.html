@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WarpLink Studio Client</title>
+    <title>WarpLink Studio Multi-Matchmaker</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +18,7 @@
             align-items: center;
             height: 100vh;
         }
-        /* Your exact 5px solid red border framework */
+        /* Your exact 5px solid red outer border layout */
         .popup-border {
             border: 5px solid #ff4d4d;
             width: 278px;
@@ -28,100 +28,97 @@
             align-items: center;
             background: #2d2d2d;
         }
-        /* Your exact custom popup size & dark palette background */
+        /* Your exact custom popup dimensions & dark background */
         .container {
             width: 270px;
             height: 465px;
             background: #1f1f1f;
             border-radius: 10px;
-            padding: 12px;
+            padding: 24px 16px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-        }
-        .tabs {
-            display: flex;
             justify-content: space-between;
-            gap: 6px;
-            margin-bottom: 14px;
         }
-        .tab {
-            flex: 1;
-            border: none;
-            background: #f2f2f2;
-            color: #000;
-            border-radius: 999px;
-            padding: 7px 0;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
+        .header-section {
             text-align: center;
+            margin-top: 10px;
         }
-        .tab:hover {
-            background: #ffffff;
+        /* Forces your top line text to be bright white instead of black */
+        .header-section h2 {
+            font-size: 28px;
+            color: #ffffff !important;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
-        .tab.active {
-            background: #ff4d4d;
-            color: white;
+        .header-section p {
+            font-size: 14px;
+            color: #d8d8d8;
+            line-height: 1.4;
         }
-        .content-area {
-            flex-grow: 1;
-            color: white;
+        .form-section {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .page-panel {
-            display: none;
             flex-direction: column;
             gap: 12px;
-            text-align: left;
+            margin-bottom: 15px;
         }
-        .page-panel.active {
-            display: flex;
+        .input-label {
+            font-size: 11px;
+            color: #ff4d4d;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .page-panel h2 {
-            font-size: 24px;
-            color: #ffffff;
-        }
-        .page-panel p {
-            font-size: 13px;
-            color: #d8d8d8;
-        }
-        /* FORM CONTROLS & SIDE-BY-SIDE GRID ELEMENTS */
-        .input-box {
+        .room-input {
             background: #2d2d2d;
-            border: 1px solid #4c97ff;
+            border: 1px solid #4c97ff; /* Clean Scratch Blue outline */
             color: white;
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 12px;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
             outline: none;
             width: 100%;
             box-sizing: border-box;
+            text-align: center;
+        }
+        .button-grid {
+            display: flex;
+            gap: 8px;
+            width: 100%;
         }
         .action-btn {
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px 0;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             box-sizing: border-box;
-            transition: opacity 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
-        .action-btn:hover {
-            opacity: 0.9;
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+        #btn-host {
+            background: #4c97ff;
+        }
+        #btn-host:hover {
+            background: #357ae8;
+        }
+        #btn-join {
+            background: #2ecc71;
+        }
+        #btn-join:hover {
+            background: #27ae60;
         }
         #wl-status-log {
             font-size: 11px;
             font-weight: bold;
             text-align: center;
-            margin-top: 4px;
             color: #a0aec0;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -130,44 +127,26 @@
 <div class="popup-border">
     <div class="container">
         
-        <!-- Scratch Addons Style Tab Selector Row -->
-        <div class="tabs">
-            <button class="tab active" id="btn-host">Host</button>
-            <button class="tab" id="btn-ext">Extensions</button>
-            <button class="tab" id="btn-social">Social</button>
+        <!-- App Title Header Block -->
+        <div class="header-section">
+            <h2>WarpLink</h2>
+            <p>Connect and synchronize with your studio room across the web.</p>
         </div>
 
-        <div class="content-area">
+        <!-- Central Input Box and Buttons Matrix -->
+        <div class="form-section">
+            <span class="input-label">Target Room Code String:</span>
+            <input id="wl-room-input" class="room-input" type="text" placeholder="Enter Room Name...">
             
-            <!-- TAB 1: HOST WORKSPACE (Create & Join Forms Side-by-Side) -->
-            <div class="page-panel active" id="panel-host">
-                <h2>Multiplayer Engine</h2>
-                <p>Enter a unique room code text string below to link up with your friend.</p>
-                
-                <input id="wl-room-input" class="input-box" type="text" placeholder="Enter Room Code...">
-                
-                <!-- Side-by-side room management grid buttons -->
-                <div style="display: flex; gap: 6px; width: 100%;">
-                    <button id="wl-host-btn" class="action-btn" style="background: #4c97ff; flex: 1;">👑 Create</button>
-                    <button id="wl-join-btn" class="action-btn" style="background: #2ecc71; flex: 1;">🔌 Join</button>
-                </div>
-                
-                <div id="wl-status-log">Status: Offline</div>
+            <div class="button-grid">
+                <button id="wl-host-btn" class="action-btn">👑 Create</button>
+                <button id="wl-join-btn" class="action-btn">🔌 Join</button>
             </div>
-
-            <!-- TAB 2: EXTENSIONS PANELS PLUGINS -->
-            <div class="page-panel" id="panel-ext">
-                <h2>Extensions</h2>
-                <p>Your custom Webflow extension canvas controls go right inside here.</p>
-            </div>
-
-            <!-- TAB 3: SOCIAL & DEPLOY CHANNELS -->
-            <div class="page-panel" id="panel-social">
-                <h2>Social</h2>
-                <p>Links, chat windows, and Scratch profile publishing forms go inside here.</p>
-            </div>
-
         </div>
+        
+        <!-- Continuous Cloud Status Logger -->
+        <div id="wl-status-log">Status: Disconnected</div>
+
     </div>
 </div>
 
