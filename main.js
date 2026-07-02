@@ -1,37 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. NAVIGATION TAB MANAGER
-    const tabButtons = [
-        document.getElementById('btn-host'),
-        document.getElementById('btn-ext'),
-        document.getElementById('btn-social')
-    ];
-
-    const panels = [
-        document.getElementById('panel-host'),
-        document.getElementById('panel-ext'),
-        document.getElementById('panel-social')
-    ];
-
-    function switchTab(selectedIndex) {
-        tabButtons.forEach(btn => { if (btn) btn.classList.remove('active'); });
-        panels.forEach(pane => { if (pane) pane.classList.remove('active'); });
-
-        if (tabButtons[selectedIndex]) tabButtons[selectedIndex].classList.add('active');
-        if (panels[selectedIndex]) panels[selectedIndex].classList.add('active');
-    }
-
-    if (tabButtons[0]) tabButtons[0].addEventListener('click', () => switchTab(0));
-    if (tabButtons[1]) tabButtons[1].addEventListener('click', () => switchTab(1));
-    if (tabButtons[2]) tabButtons[2].addEventListener('click', () => switchTab(2));
-
-
-    // 2. NATIVE BROWSER CLOUD WEBSOCKET HANDSHAKES
     let cloudSocket = null;
     const statusLog = document.getElementById('wl-status-log');
+    const roomInputField = document.getElementById('wl-room-input');
 
     function connectToCloudServer(roomId, roleName) {
-        // 👑 RENDER LINK CONNECTION CONFIGURATION
-        // Swap this text string out with your free Render app web link URL!
+        // 👑 UPDATE THIS: Point this URL path to your free running Render Web Service url address!
         const RENDER_BACKEND_URL = "wss://://onrender.com";
 
         if (cloudSocket) {
@@ -39,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (statusLog) {
-            statusLog.innerText = "Status: Connecting to cloud...";
+            statusLog.innerText = "Status: Connecting to Render cloud...";
             statusLog.style.color = "#f1c40f";
         }
 
@@ -50,17 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusLog.innerText = `Status: Live! (${roleName})`;
                 statusLog.style.color = "#2ecc71";
             }
-            // Send our room activation data packet down the network line
+            // Fire the room activation payload package down the network pipeline
             cloudSocket.send(JSON.stringify({ type: 'join', roomId: roomId }));
-            alert(`🎉 Success! Connected to Render Cloud.\n\nRoom: ${roomId}\nRole: ${roleName}`);
+            alert(`🎉 Connected to Render Cloud!\n\nRoom Node: ${roomId}\nRole Assignment: ${roleName}`);
         };
 
         cloudSocket.onmessage = (event) => {
             try {
-                const incomingData = JSON.parse(event.data);
-                console.log("[WarpLink Cloud] Arrived data tracking matrix block packet:", incomingData);
-                
-                // Live Simple3D vectors decoding data streams get captured right inside here!
+                const incomingPacket = JSON.parse(event.data);
+                console.log("[WarpLink Cloud] Received live room stream:", incomingPacket);
             } catch (err) {}
         };
 
@@ -72,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         cloudSocket.onerror = () => {
-            alert("⚠️ Connection failed! Check that your Render server is live and running.");
+            alert("⚠️ Connection dropped. Double-check that your Render background app is live and active!");
             if (statusLog) {
                 statusLog.innerText = "Status: Connection Error";
                 statusLog.style.color = "#e74c3c";
@@ -80,26 +51,23 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // 3. WIRE BUTTON HOOKS STRAIGHT TO THE INPUT ELEMENT DATA FIELDS
-    const roomInputField = document.getElementById('wl-room-input');
-    const hostButtonAction = document.getElementById('wl-host-btn');
-    const joinButtonAction = document.getElementById('wl-join-btn');
+    // Attach click events to your form handlers
+    const hostBtn = document.getElementById('wl-host-btn');
+    const joinBtn = document.getElementById('wl-join-btn');
 
-    if (hostButtonAction) {
-        hostButtonAction.onclick = () => {
-            const enteredCode = roomInputField ? roomInputField.value.trim() : '';
-            if (!enteredCode) return alert("Please enter a room name first!");
-            
-            connectToCloudServer(enteredCode, "Host");
+    if (hostBtn) {
+        hostBtn.onclick = () => {
+            const code = roomInputField ? roomInputField.value.trim() : '';
+            if (!code) return alert("Please specify a room key first!");
+            connectToCloudServer(code, "Host Master");
         };
     }
 
-    if (joinButtonAction) {
-        joinButtonAction.onclick = () => {
-            const enteredCode = roomInputField ? roomInputField.value.trim() : '';
-            if (!enteredCode) return alert("Please enter a room name first!");
-            
-            connectToCloudServer(enteredCode, "Joiner");
+    if (joinBtn) {
+        joinBtn.onclick = () => {
+            const code = roomInputField ? roomInputField.value.trim() : '';
+            if (!code) return alert("Please specify a room key first!");
+            connectToCloudServer(code, "Client Joiner");
         };
     }
 });
