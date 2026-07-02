@@ -60,6 +60,7 @@
             flex-direction: column;
             gap: 12px;
             margin-bottom: 15px;
+            align-items: center;
         }
         .input-label {
             font-size: 11px;
@@ -68,56 +69,17 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .room-input {
-            background: #2d2d2d;
-            border: 1px solid #4c97ff; /* Clean Scratch Blue outline */
-            color: white;
-            border-radius: 6px;
-            padding: 12px;
-            font-size: 14px;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-        }
-        .button-grid {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-        }
-        .action-btn {
-            color: white;
-            border: none;
-            padding: 12px 0;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            flex: 1;
-            box-sizing: border-box;
-            transition: background 0.2s, transform 0.1s;
-        }
-        .action-btn:active {
-            transform: scale(0.98);
-        }
-        #wl-host-btn {
-            background: #4c97ff;
-        }
-        #wl-host-btn:hover {
-            background: #357ae8;
-        }
-        #wl-join-btn {
-            background: #2ecc71;
-        }
-        #wl-join-btn:hover {
-            background: #27ae60;
-        }
         #wl-status-log {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
             text-align: center;
-            color: #a0aec0;
-            margin-bottom: 10px;
+            color: #f1c40f;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            border: 1px solid #223142;
         }
     </style>
 </head>
@@ -131,92 +93,72 @@
             <p>Connect and synchronize with your studio room across the web.</p>
         </div>
 
+        <!-- Hyper-focused interface layout: Inputs and manual buttons removed -->
         <div class="form-section">
-            <span class="input-label">Target Room Code String:</span>
-            <input id="wl-room-input" class="room-input" type="text" placeholder="Enter Room Name...">
-            
-            <div class="button-grid">
-                <button id="wl-host-btn" class="action-btn">👑 Create</button>
-                <button id="wl-join-btn" class="action-btn">🔌 Join</button>
-            </div>
+            <span class="input-label">Multiplayer Link State</span>
+            <div id="wl-status-log">Status: Connecting...</div>
         </div>
         
-        <div id="wl-status-log">Status: Disconnected</div>
+        <div style="font-size: 10px; color: #a0aec0; text-align: center; margin-bottom: 10px;">
+            WarpLink Serverless Peer-to-Peer Gateway
+        </div>
 
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        let webSocketLine = null;
         const statusLog = document.getElementById('wl-status-log');
-        const roomInputField = document.getElementById('wl-room-input');
 
-        function connectToNodeServer(roomId, roleName) {
-            // 👑 HOOK THIS LINE DIRECTLY TO YOUR RUNNING CLOUD SERVICE LINK:
-            // Swap this text string out with your real address handle (use wss:// instead of https://)
+        // 👑 CHROME/WEB AUTO-CONNECT HANDSHAKE ROUTINE
+        function bootAutomaticCloudTunnel() {
+            // 👑 UPDATE THIS: Paste your running Render link handle here (use wss:// instead of https://)
             const BACKEND_URL = "wss://://onrender.com";
 
-            if (webSocketLine) {
-                webSocketLine.close();
-            }
-
             if (statusLog) {
-                statusLog.innerText = "Status: Handshaking with Node server...";
+                statusLog.innerText = "Status: Tuning data line...";
                 statusLog.style.color = "#f1c40f";
             }
 
-            webSocketLine = new WebSocket(BACKEND_URL);
+            console.log("[WarpLink Web] Auto-connecting to server context: " + BACKEND_URL);
+            const webSocketLine = new WebSocket(BACKEND_URL);
 
             webSocketLine.onopen = () => {
                 if (statusLog) {
-                    statusLog.innerText = `Status: Live! (${roleName})`;
+                    statusLog.innerText = "Status: Connected Live!";
                     statusLog.style.color = "#2ecc71";
                 }
-                // Send registration packet up the pipe to the server
-                webSocketLine.send(JSON.stringify({ type: 'join', roomId: roomId }));
-                alert(`🎉 Connected to Node Server!\n\nRoom Channel: ${roomId}\nRole: ${roleName}`);
+                
+                // Automatically register into a universal master sandbox channel
+                webSocketLine.send(JSON.stringify({ type: 'join', roomId: 'global-studio-sync' }));
             };
 
             webSocketLine.onmessage = (event) => {
-                const incoming = JSON.parse(event.data);
-                console.log("[WarpLink Client] Data packet arrived:", incoming);
+                try {
+                    const incomingPacket = JSON.parse(event.data);
+                    console.log("[WarpLink Client] Live coordinates data arrived:", incomingPacket);
+                } catch(e) {}
             };
 
             webSocketLine.onclose = () => {
                 if (statusLog) {
-                    statusLog.innerText = "Status: Disconnected";
+                    statusLog.innerText = "Status: Reconnecting...";
                     statusLog.style.color = "#e74c3c";
                 }
+                // Auto-retry connection string loops if server drops
+                setTimeout(bootAutomaticCloudTunnel, 3000);
             };
 
             webSocketLine.onerror = () => {
                 if (statusLog) {
-                    statusLog.innerText = "Status: Server Link Error";
+                    statusLog.innerText = "Status: Server Offline";
                     statusLog.style.color = "#e74c3c";
                 }
-                alert("⚠️ Connection failed. Check that your Node application is completely active!");
             };
         }
 
-        const hostBtn = document.getElementById('wl-host-btn');
-        const joinBtn = document.getElementById('wl-join-btn');
-
-        if (hostBtn) {
-            hostBtn.onclick = () => {
-                const code = roomInputField ? roomInputField.value.trim() : '';
-                if (!code) return alert("Please specify a room name code parameter first!");
-                connectToNodeServer(code, "Host Master");
-            };
-        }
-
-        if (joinBtn) {
-            joinBtn.onclick = () => {
-                const code = roomInputField ? roomInputField.value.trim() : '';
-                if (!code) return alert("Please specify a room name code parameter first!");
-                connectToNodeServer(code, "Client Joiner");
-            };
-        }
+        // 🚀 Execute the automatic backend tunnel connection instantly on page bootup
+        bootAutomaticCloudTunnel();
     });
 </script>
 </body>
